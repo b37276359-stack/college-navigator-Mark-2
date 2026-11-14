@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>College Application & Essay Navigator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b2a41;--mute:#5b6779;--paper:#f4f6f8;--card:#fff;--line:#d5dbe3;--mark:#ffd84d;--link:#2457c5;--pub:#2457c5;--pri:#8a2b3d;--cc:#1f7a6d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 "Source Sans 3",system-ui,sans-serif}
+header,main,footer{max-width:1100px;margin:0 auto;padding:0 20px}
+header{padding-top:40px}
+h1{font:700 clamp(28px,5vw,42px)/1.1 Fraunces,Georgia,serif;margin:0 0 8px}
+header p{margin:0;color:var(--mute);max-width:60ch}
+.bar{position:sticky;top:0;z-index:5;background:var(--paper);padding:16px 0;margin-top:12px;border-bottom:1px solid var(--line)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+input,select,button{font:inherit;color:inherit}
+#q,#st{padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff}
+#q{flex:1 1 260px}
+.chip{padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--mark);border-color:var(--ink);font-weight:600}
+:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+#count{margin:16px 0 8px;color:var(--mute)}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;padding-bottom:40px}
+.card{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--c);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.top{display:flex;gap:12px;align-items:center}
+.logo{width:44px;height:44px;border-radius:6px;flex:none;background:var(--paper);display:grid;place-items:center;font:700 16px Fraunces,serif;overflow:hidden}
+.logo img{width:32px;height:32px}
+.card h2{font:600 17px/1.25 "Source Sans 3",sans-serif;margin:0}
+.meta{color:var(--mute);font-size:14px;margin:0}
+.meta b{color:var(--c);font-weight:600}
+.act{display:flex;gap:8px;margin-top:auto}
+.go{flex:1;text-align:center;padding:8px 10px;border-radius:6px;background:var(--ink);color:#fff;text-decoration:none;font-weight:600}
+.go:hover{background:#0f1a2b}
+.save{padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer}
+.save[aria-pressed=true]{background:var(--mark);border-color:var(--ink)}
+#empty{display:none;padding:30px;background:#fff;border:1px dashed var(--line);border-radius:8px;text-align:center}
+#empty button{margin-top:10px;padding:8px 14px;border-radius:6px;border:1px solid var(--ink);background:#fff;cursor:pointer}
+footer{padding-bottom:40px;color:var(--mute);font-size:14px}
+footer a{color:var(--link)}
+</style>
+</head>
+<body>
+<header>
+<h1>College Application &amp; Essay Navigator</h1>
+<p>Search schools, save the ones you’re applying to, and jump straight to their websites to find applications and essay prompts.</p>
+</header>
+<main>
+<div class="bar">
+<div class="row">
+<input id="q" type="search" placeholder="Search by school, city, or state" aria-label="Search colleges">
+<select id="st" aria-label="Filter by state"><option value="">All states</option></select>
+</div>
+<div class="row" id="chips" style="margin-top:10px">
+<button class="chip" data-t="" aria-pressed="true">All</button>
+<button class="chip" data-t="pub" aria-pressed="false">Public</button>
+<button class="chip" data-t="pri" aria-pressed="false">Private</button>
+<button class="chip" data-t="cc" aria-pressed="false">Community college</button>
+<button class="chip" id="sv" aria-pressed="false">Saved (0)</button>
+</div>
+</div>
+<p id="count" aria-live="polite"></p>
+<div id="grid"></div>
+<div id="empty"><p>No schools match your search and filters.</p><button id="reset">Clear search and filters</button></div>
+</main>
+<footer>
+<p>Most four-year schools accept the <a href="https://www.commonapp.org" target="_blank" rel="noopener">Common App</a>. The University of California campuses and MIT use their own applications, and many community colleges apply directly on their own sites. Always confirm deadlines and requirements on each school’s website.</p>
+</footer>
+<script>
+const D=`Ohio State University|osu.edu|Columbus, OH|pub|Research
+University of Cincinnati|uc.edu|Cincinnati, OH|pub|Co-op programs
+Miami University|miamioh.edu|Oxford, OH|pub
+Ohio University|ohio.edu|Athens, OH|pub
+Kent State University|kent.edu|Kent, OH|pub
+University of Michigan|umich.edu|Ann Arbor, MI|pub|Research
+Michigan State University|msu.edu|East Lansing, MI|pub|Research
+Purdue University|purdue.edu|West Lafayette, IN|pub|Engineering
+Indiana University Bloomington|iu.edu|Bloomington, IN|pub
+University of Illinois Urbana-Champaign|illinois.edu|Champaign, IL|pub|Research
+University of Wisconsin-Madison|wisc.edu|Madison, WI|pub|Research
+University of Minnesota|umn.edu|Minneapolis, MN|pub|Research
+University of Iowa|uiowa.edu|Iowa City, IA|pub
+Penn State University|psu.edu|University Park, PA|pub
+Rutgers University|rutgers.edu|New Brunswick, NJ|pub
+University of Maryland|umd.edu|College Park, MD|pub
+University of Massachusetts Amherst|umass.edu|Amherst, MA|pub
+SUNY Binghamton|binghamton.edu|Binghamton, NY|pub
+Hunter College (CUNY)|hunter.cuny.edu|New York, NY|pub
+University of Virginia|virginia.edu|Charlottesville, VA|pub|Research
+Virginia Tech|vt.edu|Blacksburg, VA|pub|Engineering
+UNC Chapel Hill|unc.edu|Chapel Hill, NC|pub|Research
+NC State University|ncsu.edu|Raleigh, NC|pub|Engineering
+Georgia Tech|gatech.edu|Atlanta, GA|pub|Engineering
+University of Georgia|uga.edu|Athens, GA|pub
+University of Florida|ufl.edu|Gainesville, FL|pub|Research
+Florida State University|fsu.edu|Tallahassee, FL|pub
+Florida A&M University|famu.edu|Tallahassee, FL|pub|HBCU
+University of Alabama|ua.edu|Tuscaloosa, AL|pub
+University of Texas at Austin|utexas.edu|Austin, TX|pub|Research
+Texas A&M University|tamu.edu|College Station, TX|pub|Research
+University of Arizona|arizona.edu|Tucson, AZ|pub
+Arizona State University|asu.edu|Tempe, AZ|pub
+University of Colorado Boulder|colorado.edu|Boulder, CO|pub
+University of Washington|washington.edu|Seattle, WA|pub|Research
+University of Oregon|uoregon.edu|Eugene, OR|pub
+UC Berkeley|berkeley.edu|Berkeley, CA|pub|Research
+UCLA|ucla.edu|Los Angeles, CA|pub|Research
+UC San Diego|ucsd.edu|La Jolla, CA|pub|Research
+UC Davis|ucdavis.edu|Davis, CA|pub
+UC Santa Barbara|ucsb.edu|Santa Barbara, CA|pub
+UC Irvine|uci.edu|Irvine, CA|pub
+Harvard University|harvard.edu|Cambridge, MA|pri|Ivy League
+Yale University|yale.edu|New Haven, CT|pri|Ivy League
+Princeton University|princeton.edu|Princeton, NJ|pri|Ivy League
+Columbia University|columbia.edu|New York, NY|pri|Ivy League
+University of Pennsylvania|upenn.edu|Philadelphia, PA|pri|Ivy League
+Brown University|brown.edu|Providence, RI|pri|Ivy League
+Cornell University|cornell.edu|Ithaca, NY|pri|Ivy League
+Dartmouth College|dartmouth.edu|Hanover, NH|pri|Ivy League
+Stanford University|stanford.edu|Stanford, CA|pri|Research
+MIT|mit.edu|Cambridge, MA|pri|Engineering
+Duke University|duke.edu|Durham, NC|pri|Research
+Northwestern University|northwestern.edu|Evanston, IL|pri|Research
+University of Chicago|uchicago.edu|Chicago, IL|pri|Research
+Johns Hopkins University|jhu.edu|Baltimore, MD|pri|Research
+Vanderbilt University|vanderbilt.edu|Nashville, TN|pri|Research
+Rice University|rice.edu|Houston, TX|pri|Research
+University of Notre Dame|nd.edu|Notre Dame, IN|pri|Research
+Emory University|emory.edu|Atlanta, GA|pri|Research
+Georgetown University|georgetown.edu|Washington, DC|pri|Research
+Carnegie Mellon University|cmu.edu|Pittsburgh, PA|pri|Engineering
+USC|usc.edu|Los Angeles, CA|pri|Research
+New York University|nyu.edu|New York, NY|pri|Research
+Boston University|bu.edu|Boston, MA|pri|Research
+Boston College|bc.edu|Chestnut Hill, MA|pri|Research
+Northeastern University|northeastern.edu|Boston, MA|pri|Co-op programs
+Tufts University|tufts.edu|Medford, MA|pri|Research
+Case Western Reserve University|case.edu|Cleveland, OH|pri|Research
+University of Dayton|udayton.edu|Dayton, OH|pri
+Oberlin College|oberlin.edu|Oberlin, OH|pri|Liberal arts
+Kenyon College|kenyon.edu|Gambier, OH|pri|Liberal arts
+Denison University|denison.edu|Granville, OH|pri|Liberal arts
+Williams College|williams.edu|Williamstown, MA|pri|Liberal arts
+Amherst College|amherst.edu|Amherst, MA|pri|Liberal arts
+Swarthmore College|swarthmore.edu|Swarthmore, PA|pri|Liberal arts
+Pomona College|pomona.edu|Claremont, CA|pri|Liberal arts
+Howard University|howard.edu|Washington, DC|pri|HBCU
+Spelman College|spelman.edu|Atlanta, GA|pri|HBCU
+Morehouse College|morehouse.edu|Atlanta, GA|pri|HBCU
+University of Miami|miami.edu|Coral Gables, FL|pri
+Villanova University|villanova.edu|Villanova, PA|pri
+Columbus State Community College|cscc.edu|Columbus, OH|cc
+Cuyahoga Community College|tri-c.edu|Cleveland, OH|cc
+Sinclair College|sinclair.edu|Dayton, OH|cc
+Harper College|harpercollege.edu|Palatine, IL|cc
+City Colleges of Chicago|ccc.edu|Chicago, IL|cc
+Borough of Manhattan Community College|bmcc.cuny.edu|New York, NY|cc
+LaGuardia Community College|laguardia.cuny.edu|Queens, NY|cc
+Montgomery College|montgomerycollege.edu|Rockville, MD|cc
+Northern Virginia Community College|nvcc.edu|Annandale, VA|cc
+Miami Dade College|mdc.edu|Miami, FL|cc
+Valencia College|valenciacollege.edu|Orlando, FL|cc
+Broward College|broward.edu|Fort Lauderdale, FL|cc
+Houston Community College|hccs.edu|Houston, TX|cc
+Austin Community College|austincc.edu|Austin, TX|cc
+Lone Star College|lonestar.edu|Houston, TX|cc
+Dallas College|dallascollege.edu|Dallas, TX|cc
+Mesa Community College|mesacc.edu|Mesa, AZ|cc
+Portland Community College|pcc.edu|Portland, OR|cc
+Seattle Central College|seattlecentral.edu|Seattle, WA|cc
+Santa Monica College|smc.edu|Santa Monica, CA|cc
+Pasadena City College|pasadena.edu|Pasadena, CA|cc
+City College of San Francisco|ccsf.edu|San Francisco, CA|cc
+De Anza College|deanza.edu|Cupertino, CA|cc
+Foothill College|foothill.edu|Los Altos Hills, CA|cc
+Santa Barbara City College|sbcc.edu|Santa Barbara, CA|cc`.split("\n").map(l=>{const[n,d,loc,t,g]=l.split("|");return{n,d,loc,t,g,s:loc.split(", ")[1]}}).sort((a,b)=>a.n.localeCompare(b.n));
+const T={pub:["Public","var(--pub)"],pri:["Private","var(--pri)"],cc:["Community college","var(--cc)"]};
+const $=id=>document.getElementById(id);
+let saved=new Set(),type="",onlySaved=false;
+try{saved=new Set(JSON.parse(localStorage.getItem("saved")||"[]"))}catch(e){}
+[...new Set(D.map(c=>c.s))].sort().forEach(s=>$("st").add(new Option(s,s)));
+function persist(){try{localStorage.setItem("saved",JSON.stringify([...saved]))}catch(e){}}
+function render(){
+const q=$("q").value.trim().toLowerCase(),st=$("st").value;
+const list=D.filter(c=>(!type||c.t===type)&&(!st||c.s===st)&&(!onlySaved||saved.has(c.d))&&(!q||(c.n+" "+c.loc+" "+(c.g||"")).toLowerCase().includes(q)));
+const g=$("grid");g.textContent="";
+list.forEach(c=>{
+const el=document.createElement("article");el.className="card";el.style.setProperty("--c",T[c.t][1]);
+const logo=document.createElement("div");logo.className="logo";
+const img=new Image();img.alt="";img.loading="lazy";img.src="https://www.google.com/s2/favicons?domain="+c.d+"&sz=64";
+img.onerror=()=>{logo.textContent=c.n.replace(/[^A-Za-z ]/g,"").split(" ").filter(w=>w.length>2).slice(0,2).map(w=>w[0]).join("")||c.n[0]};
+logo.append(img);
+const info=document.createElement("div");
+const h=document.createElement("h2");h.textContent=c.n;
+const m=document.createElement("p");m.className="meta";
+const b=document.createElement("b");b.textContent=T[c.t][0];
+m.append(b," · "+c.loc+(c.g?" · "+c.g:""));
+info.append(h,m);
+const top=document.createElement("div");top.className="top";top.append(logo,info);
+const a=document.createElement("a");a.className="go";a.href="https://"+c.d;a.target="_blank";a.rel="noopener";a.textContent="Visit website";
+a.setAttribute("aria-label","Visit "+c.n+" website");
+const s=document.createElement("button");s.className="save";s.setAttribute("aria-pressed",saved.has(c.d));
+s.textContent=saved.has(c.d)?"Saved":"Save";
+s.onclick=()=>{saved.has(c.d)?saved.delete(c.d):saved.add(c.d);persist();render()};
+const act=document.createElement("div");act.className="act";act.append(a,s);
+el.append(top,act);g.append(el)});
+$("empty").style.display=list.length?"none":"block";
+$("count").textContent=list.length+" of "+D.length+" schools";
+$("sv").textContent="Saved ("+saved.size+")";$("sv").setAttribute("aria-pressed",onlySaved);
+}
+$("q").oninput=render;$("st").onchange=render;
+$("chips").onclick=e=>{const b=e.target.closest(".chip");if(!b)return;
+if(b.id==="sv"){onlySaved=!onlySaved}else{type=b.dataset.t;document.querySelectorAll(".chip[data-t]").forEach(x=>x.setAttribute("aria-pressed",x===b))}
+render()};
+$("reset").onclick=()=>{$("q").value="";$("st").value="";type="";onlySaved=false;document.querySelectorAll(".chip[data-t]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.t===""));render()};
+render();
+</script>
+</body>
+</html>
